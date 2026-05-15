@@ -1,4 +1,4 @@
-from omygaps_clean.main import main
+from XIL.main import main
 
 if __name__ == "__main__":
     main()
