@@ -151,7 +151,7 @@ class Trainer:
             proto = features[idx].mean(0)
             domain_key = raw_features[idx].mean(0)
             self.all_keys.setdefault(domain_id, []).append(domain_key)
-            net.new_classifier_pool[domain_id].weight.data[int(class_id)] = proto
+            net.proto_classifier_pool[domain_id].weight.data[int(class_id)] = proto
 
     @torch.no_grad()
     def extract_centroids(self, model, train_dataset, domain_name: str):
@@ -249,7 +249,7 @@ class Trainer:
                 indices, group_imgs = zip(*items)
                 group_imgs = torch.stack(group_imgs).to(self.device)
                 features, _ = net.concat_features(group_imgs, selected_domain)
-                logits = net.new_classifier_pool[selected_domain](features)
+                logits = net.proto_classifier_pool[selected_domain](features)
                 for index, logit in zip(indices, logits):
                     batch_results[index] = logit
 
