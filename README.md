@@ -14,7 +14,7 @@ The current code supports:
 ## Project Structure
 
 ```text
-XEED/
+XIL/
 ├── configs/
 ├── data.py
 ├── model.py
