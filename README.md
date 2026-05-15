@@ -125,10 +125,7 @@ python run.py \
 
 - The current repository was refactored from the original XIL/XIL codebase with AI assistance. Some errors may remain after refactoring. Please report any issues if you find them.
 
-- The data generation code for XEED 'representation modulation with domain semantics' component will be uploaded later.
-
-- The generation process was based on InstantStyle:  
-  https://github.com/instantX-research/InstantStyle
+- The data generation code for XEED 'representation modulation with domain semantics' component will be uploaded later. The generation process was based on InstantStyle: https://github.com/instantX-research/InstantStyle
 
 ## Acknowledgement
 
