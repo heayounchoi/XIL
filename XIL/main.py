@@ -32,9 +32,9 @@ def load_checkpoint_if_needed(model, trainer, checkpoint_path: str):
 
 def main():
     args = load_args()
-    data_manager = OMyGapsDataManager(args)
-    model = OMyGapsNet(args, data_manager.task_order)
-    trainer = OMyGapsTrainer(args, get_classnames(args["dataset"]))
+    data_manager = XILDataManager(args)
+    model = XEED(args, data_manager.task_order)
+    trainer = Trainer(args, get_classnames(args["dataset"]))
     trainer.task_order = data_manager.task_order
 
     load_checkpoint_if_needed(model, trainer, args.get("checkpoint", ""))
