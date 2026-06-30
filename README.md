@@ -1,21 +1,25 @@
 # XIL: Cross-Expanding Incremental Learning
 
-Official implementation of  
-**[XIL: Cross-Expanding Incremental Learning](https://openreview.net/pdf?id=eaAGI1lIb4)**  
+Official implementation of
+**[XIL: Cross-Expanding Incremental Learning](https://openreview.net/pdf?id=eaAGI1lIb4)**
 ICLR 2026
 
 This repository contains the cleaned core implementation of the XIL protocol and the XEED model.
 
 The current code supports:
-- `centroids`: select representative class/domain samples with ViT feature clustering.
-- `train`: train task prompts/classifiers and build prototype classifiers from centroid/prototype data.
-- `eval`: run domain-key selection and prompt-conditioned inference.
+
+* `centroids`: select representative class/domain samples with ViT feature clustering.
+* `generation`: generate prototype images and cross-class transferred data.
+* `train`: train task prompts/classifiers and build prototype classifiers from generated prototype data.
+* `eval`: run domain-key selection and prompt-conditioned inference.
 
 ## Project Structure
 
 ```text
 XIL/
 ├── configs/
+├── generation/
+│   └── InstantStyle/
 ├── data.py
 ├── model.py
 ├── trainer.py
@@ -71,18 +75,19 @@ sketch_test.txt
 
 The exact domain names and order should match the `domain_order` field in the config file.
 
-
 ## Running XEED
 
-XEED is run in three stages:
+XEED is run in five stages:
 
 1. Extract centroids.
-2. Train task prompts/classifiers and build prototype classifiers.
-3. Evaluate with domain-key selection and prompt-conditioned inference.
+2. Generate prototype images.
+3. Generate cross-class transferred data.
+4. Train task prompts/classifiers and build prototype classifiers.
+5. Evaluate with domain-key selection and prompt-conditioned inference.
 
 ## 1. Extract Centroids
 
-This step selects representative samples for each class/domain using ViT feature clustering.
+First, move to the main `XIL` folder and select representative samples for each class/domain using ViT feature clustering.
 
 ```bash
 python run.py \
@@ -93,21 +98,59 @@ python run.py \
 
 The selected centroid samples are saved under `centroid_output_dir`.
 
-## 2. Train
+## 2. Generate Prototype Images
 
-This step trains task-specific prompts and classifiers. It also builds prototype classifiers from centroid/prototype data.
+After extracting centroids, move to the data generation folder and run `generate_prototypes_{dataset}.py`.
+
+For example:
 
 ```bash
+cd generation/InstantStyle
+
+python generate_prototypes_office31.py \
+  --dom 0 \
+  --task_order_path office31_task_order.json \
+  --data_path ../../data/office31/centroids \
+  --save_path ../../data/office31/prototypes
+```
+
+This step generates prototype images from the selected centroid samples.
+
+## 3. Generate Cross-Class Transferred Data
+
+Next, run `cross_class_generation_{dataset}.py` to generate cross-class transferred data.
+
+For example:
+
+```bash
+python cross_class_generation_office31.py \
+  --dom 0 \
+  --task_order_path office31_task_order.json \
+  --data_path ../../data/office31/prototypes \
+  --save_path ../../data/office31/generated
+```
+
+The generated data will be used for XEED training.
+
+## 4. Train
+
+Return to the main `XIL` folder and train the model.
+
+```bash
+cd ../..
+
 python run.py \
   --config configs/domainnet.json \
   --run_mode train \
-  --proto_data_path ../data/domainnet/centroids \
+  --proto_data_path ../data/domainnet/generated \
   --output_dir logs
 ```
 
+This step trains task-specific prompts and classifiers. It also builds prototype classifiers from prototype/generated data.
+
 Checkpoints and logs are saved under `output_dir`.
 
-## 3. Evaluate
+## 5. Evaluate
 
 This step loads a trained checkpoint and performs inference using domain-key selection, task/domain-specific prompt conditioning, and prototype-based classifier weights.
 
@@ -120,12 +163,13 @@ python run.py \
 
 ## Notes
 
-- XEED model-related code is based on the S-Prompts repository:  
+* XEED model-related code is based on the S-Prompts repository:
   https://github.com/iamwangyabin/S-Prompts
 
-- The current repository was refactored from the original XIL/XIL codebase with AI assistance. Some errors may remain after refactoring. Please report any issues if you find them.
+* The data generation process is based on InstantStyle:
+  https://github.com/instantX-research/InstantStyle
 
-- The data generation code for XEED 'representation modulation with domain semantics' component will be uploaded later. The generation process was based on InstantStyle: https://github.com/instantX-research/InstantStyle
+* This repository was refactored from the original XIL codebase with AI assistance. Some errors or inconsistencies may remain after refactoring. Please check the scripts carefully before running large-scale experiments and report any issues if you find them.
 
 ## Acknowledgement
 
@@ -133,5 +177,5 @@ This codebase builds on S-Prompts and InstantStyle.
 
 Please refer to the original repositories for their implementation details and licenses:
 
-- S-Prompts: https://github.com/iamwangyabin/S-Prompts
-- InstantStyle: https://github.com/instantX-research/InstantStyle
+* S-Prompts: https://github.com/iamwangyabin/S-Prompts
+* InstantStyle: https://github.com/instantX-research/InstantStyle
